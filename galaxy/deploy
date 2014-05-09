@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+
+# BEGIN_COPYRIGHT
+# 
+# Copyright (C) 2013-2014 CRS4.
+# 
+# This file is part of vispa.
+# 
+# vispa is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+# 
+# vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# vispa.  If not, see <http://www.gnu.org/licenses/>.
+# 
+# END_COPYRIGHT
+
+"""
+Deploy Galaxy tools.
+"""
+
+import sys, os, shutil, argparse
+import xml.dom.minidom as minidom
+
+
+DEFAULTS = {
+  "conf": "shed_tool_conf.xml",
+  "tool_data": "tool-data",
+  "tools": "tools",
+  "integrated_tp": "integrated_tool_panel.xml",
+  }
+MANIFEST = [  # order matters
+  "extract_sff.xml",
+  "demux.xml",
+  "preBlastOperations.xml",
+  "mr_blast.xml",
+  "merge_redundant.xml",
+  "annotate.xml",
+  ]
+INTEGRATED_TP_FN = "integrated_tool_panel.xml"
+
+
+def write_conf(args):
+  tool_files = frozenset(
+    _ for _ in os.listdir(DEFAULTS["tools"]) if _.endswith(".xml")
+    )
+  dom = minidom.getDOMImplementation()
+  doc = dom.createDocument(None, "toolbox", None)
+  toolbox = doc.documentElement
+  toolbox.setAttribute("tool_path", os.path.abspath(args.toolshed_dir))
+  section = doc.createElement("section")
+  section.setAttribute("id", "tiget_pipeline")
+  section.setAttribute("name", "VISPA")
+  for n in MANIFEST:
+    if n not in tool_files:
+      raise RuntimeError("%r not found in %r" % (n, DEFAULTS["tools"]))
+    tool = doc.createElement("tool")
+    tool.setAttribute("file", n)
+    section.appendChild(tool)
+  toolbox.appendChild(section)
+  with open(args.conf, "w") as fo:
+    fo.write(doc.toprettyxml(indent="  "))
+  print "wrote %r" % (args.conf,)
+
+
+def deploy_files(src, dst):
+  for n in os.listdir(src):
+    if n[0] == ".":
+      continue
+    src_fn, dst_fn = os.path.join(src, n), os.path.join(dst, n)
+    shutil.copyfile(src_fn, dst_fn)
+    print "wrote %r" % (dst_fn,)
+
+
+def deploy_tools(args):
+  deploy_files(DEFAULTS["tools"], args.toolshed_dir)
+
+
+def deploy_tool_data(args):
+  deploy_files(DEFAULTS["tool_data"], args.tool_data)
+
+
+def make_parser():
+  parser = argparse.ArgumentParser(description=__doc__.strip())
+  parser.add_argument("galaxy_home", metavar="GALAXY_HOME",
+                      help="Galaxy home directory")
+  parser.add_argument("toolshed_dir", metavar="TOOLSHED_DIR",
+                      help="directory where tools must be deployed")
+  parser.add_argument("--conf", metavar="FILE",
+                      help="output toolshed configuration file")
+  parser.add_argument("--tool-data", metavar="DIR",
+                      help="output tool data dir")
+  return parser
+
+
+def main(argv):
+  parser = make_parser()
+  args = parser.parse_args(argv[1:])
+  for opt in "conf", "tool_data":
+    if not getattr(args, opt):
+      setattr(args, opt, os.path.join(args.galaxy_home, DEFAULTS[opt]))
+  write_conf(args)
+  deploy_tools(args)
+  deploy_tool_data(args)
+  integrated_tp = os.path.join(args.galaxy_home, DEFAULTS["integrated_tp"])
+  print "You may want to remove %s before restarting Galaxy" % integrated_tp
+
+
+if __name__ == "__main__":
+  main(sys.argv)

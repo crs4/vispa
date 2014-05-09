@@ -1,0 +1,103 @@
+<!--
+BEGIN_COPYRIGHT
+
+Copyright (C) 2013-2014 CRS4.
+
+This file is part of vispa.
+
+vispa is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+vispa.  If not, see <http://www.gnu.org/licenses/>.
+
+END_COPYRIGHT
+-->
+
+<tool id="annotate" name="Annotate ISs" version="0.9.0">
+
+<description></description>
+
+<command interpreter="python">
+  annotate.py $input_file $annot_file -o $output_file $skip_first $multi
+</command>
+
+<inputs>
+  <param name="input_file" type="data" format="tabular"
+	 label="ISs, one tab-separated (chr, pos) pair per line" />
+  <param name="skip_first" type="boolean" checked="False"
+	 truevalue="--skip-first" falsevalue="" label="Skip first line" />
+  <param name="multi" type="boolean" checked="False"
+	 truevalue="--multi" falsevalue="" label="Extended output" />
+  <param name="annot_file" type="data" format="bed"
+	 label="Annotation file in BED format" />
+</inputs>
+
+<outputs>
+  <data name="output_file" format="tabular" label="Annotated ISs"/>
+</outputs>
+
+  <help>
+**What it does**
+
+This tool takes two input files:
+
+1. A tabular file with one integration site (IS) per line. Each
+   integration site is represented by a tab-separated (chromosome,
+   position) pair. Columns beyond the second one, if present, are
+   ignored.
+
+2. An annotation file in BED format. In addition to the three required
+   BED fields (chromosome tag, start, end), this tool also requires the
+   name and strand fields to be present. Note that since the BED format
+   has no header and does not allow "holes" in between columns, a fifth
+   column for the score field must be present (it will be ignored) before
+   the strand column.
+
+**Make sure that chromosome tags are consistent between the
+two input files.**
+
+For each input IS, the tool finds the closest feature among
+those listed in the provided annotation file and
+outputs annotation information in the following format::
+
+  CHROM POS NAME START END STRAND TSS_D REL_POS INTEGRATION
+
+Where whitespace characters represent tabs and:
+
+CHROM, POS are taken from the corresponding input query
+
+NAME and STRAND are the feature's name and strand as they appear in
+the annotation file
+
+START, END are the feature's starting and ending position. Note that,
+in contrast with the convention used in bed files, END is not
+augmented by one
+
+TSS_D is the distance from the transcription start site (START if the
+strand is positive or END if it's negative)
+
+REL_POS is the relative position of the integration site with respect
+to the feature. Possible values are::
+
+  -1 if POS &lt; START on the positive strand or POS &gt; END on the negative
+  0 if POS is contained within the feature
+  1 if POS &lt; START on the negative strand or POS &gt; END on the positive
+
+INTEGRATION is the integration percentage, expressed as ``100 * TSS_D / (END - START)``
+
+**Extended output**
+
+Since annotated genomic regions are often overlapping, an IS can be
+contained within (or equally close to) multiple features: if the
+extended output flag is activated, for each IS the program outputs
+multiple lines corresponding to such features; otherwise, it picks one
+at random.
+  </help>
+</tool>

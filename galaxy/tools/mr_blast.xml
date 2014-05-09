@@ -1,0 +1,168 @@
+<!--
+BEGIN_COPYRIGHT
+
+Copyright (C) 2013-2014 CRS4.
+
+This file is part of vispa.
+
+vispa is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+vispa.  If not, see <http://www.gnu.org/licenses/>.
+
+END_COPYRIGHT
+-->
+
+<tool id="mr_blast" name="MapReduce BLAST" version="0.9.0">
+
+<description></description>
+
+<command interpreter="python">
+
+mr_blast.py '$query' '$db.fields.path'
+--log-file ${log_file} --log-level DEBUG
+--mr-dump-file ${mr_dump_file}
+--hadoop-home /opt/hadoop
+--hadoop-conf-dir /opt/hadoop/conf
+--blastall /home/simleo/.local/bin/blastall
+--formatdb /home/simleo/.local/bin/formatdb
+--disable-guardian
+
+#if $hadoop_conf.level == 'advanced'
+--f2t-mappers $hadoop_conf.f2t_mappers
+--blast-mappers $hadoop_conf.blast_mappers
+#else
+--f2t-mappers 120
+--blast-mappers 240
+#end if
+
+#if $blast_conf.level == 'advanced'
+--blast-prog $blast_conf.prog
+--blast-evalue $blast_conf.evalue
+--blast-gap-cost $blast_conf.gap_cost
+--blast-word-size $blast_conf.word_size
+$blast_conf.filters
+#else
+--blast-prog blastn
+--blast-evalue 1.0
+--blast-gap-cost 1
+--blast-word-size 20
+#end if
+
+#if $tiget_conf.level == 'advanced'
+--tiget-max-hits $tiget_conf.max_hits
+--tiget-max-start $tiget_conf.max_start
+--tiget-homology-percent $tiget_conf.homology_percent
+--tiget-min-al2seq-percent $tiget_conf.min_al2seq_percent
+--tiget-min-score-diff $tiget_conf.min_score_diff
+#else
+--tiget-max-hits 10
+--tiget-max-start 4
+--tiget-homology-percent 95.0
+--tiget-min-al2seq-percent 15.0
+--tiget-min-score-diff 20.0
+#end if
+
+</command>
+
+<inputs>
+
+  <param name="query" type="data" format="fasta" label="input FASTA file"/>
+  <param name="db" type="select" label="BLAST database">
+    <options from_file="vispa_blastdb.loc">
+      <column name="value" index="0"/>
+      <column name="name" index="1"/>
+      <column name="path" index="2"/>
+    </options>
+  </param>
+
+  <conditional name="blast_conf">
+    <param name="level" type="select" label="BLAST configuration">
+      <option value="default" selected="true">Default</option>
+      <option value="advanced">Advanced</option>
+    </param>
+    <when value="advanced">
+      <param name="prog" size="10" type="text" value="blastn"
+	     label="BLAST program (e.g., blastn, blastp, ...)"/>
+      <param name="evalue" size="10" type="float" value="1.0"
+	     label="Expectation value"/>
+      <param name="gap_cost" size="10" type="integer" value="1"
+	     label="Gap opening cost"/>
+      <param name="word_size" size="10" type="integer" value="20"
+	     label="Word size"/>
+      <param name="filters" type="boolean" falsevalue=""
+	     truevalue="--blast-filters" label="BLAST filters"/>
+    </when>
+  </conditional>
+  
+  <conditional name="tiget_conf">
+    <param name="level" type="select" label="Filtering configuration">
+      <option value="default" selected="true">Default</option>
+      <option value="advanced">Advanced</option>
+    </param>
+    <when value="advanced">
+      <param name="max_hits" size="10" type="integer" value="10"
+	     label="Number of BLAST hits to keep for each query sequence"/>
+      <param name="max_start" size="10" type="integer" value="4"
+	     label="Upper threshold for query start"/>
+      <param name="homology_percent" size="10" type="float" value="95.0"
+	     label="Lower threshold for homology percent"/>
+      <param name="min_al2seq_percent" size="10" type="float" value="15.0"
+	     label="Min alignment-to-seq percent for unique hits"/>
+      <param name="min_score_diff" size="10" type="float" value="20.0"
+	     label="Min score diff for unique hits"/>
+    </when>
+  </conditional>
+
+  <conditional name="hadoop_conf">
+    <param name="level" type="select" label="Hadoop configuration">
+      <option value="default" selected="true">Default</option>
+      <option value="advanced">Advanced</option>
+    </param>
+    <when value="advanced">
+      <param name="f2t_mappers" size="4" type="integer" value="120"
+	     label="number of map tasks for fasta2tab"/>
+      <param name="blast_mappers" size="4" type="integer" value="240"
+	     label="number of map tasks for BLAST"/>
+    </when>
+  </conditional>
+
+</inputs>
+
+<outputs>
+  <data name="all_hits" from_work_dir="all_hits.tsv" format="tabular"
+	label="BLAST output"/>
+  <data name="unambiguous" from_work_dir="unambiguous" format="tabular"
+	label="unambiguous hits"/>
+  <data name="no_hit" from_work_dir="no_hit" format="tabular"
+	label="sequences with no hits"/>
+  <data name="repeat" from_work_dir="repeat" format="tabular"
+	label="repeats"/>
+  <data name="log_file" format="txt" label="log file"/>
+  <data name="mr_dump_file" format="txt" label="MapReduce dump file"/>
+</outputs>
+
+<tests></tests>
+
+<help>
+**What it does**
+
+This tool runs a MapReduce BLAST job with filters on Hadoop.
+
+Every query sequence in the input FASTA file is BLASTed against the
+selected database and results are filtered according to the chosen
+parameter values.
+
+Parameters are divided in three categories: BLAST, Filtering and
+Hadoop. To access advanced configuration for a given category, use the
+corresponding drop-down list.
+</help>
+
+</tool>

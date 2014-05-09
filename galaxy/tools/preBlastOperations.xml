@@ -1,0 +1,47 @@
+<!--
+BEGIN_COPYRIGHT
+
+Copyright (C) 2013-2014 CRS4.
+
+This file is part of vispa.
+
+vispa is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+vispa.  If not, see <http://www.gnu.org/licenses/>.
+
+END_COPYRIGHT
+-->
+
+<tool id="preBlastOperations" name="Trim LTR/LC" version="0.9.0">
+  <description></description>
+  <command interpreter="python">preBlastOperations.py -i $input_file -ltr $ltr -lk $linker -tr $trimmedseq -usedb basic
+</command>
+
+  <inputs>
+    <param name="input_file" type="data" format="fasta" label="Input File" />
+    <param name="ltr" type="text" value="def" label="LTR sequence" help="LTR seq as plain text ('def' for default sequence)" />
+    <param name="linker" type="text" value="def" label="LC Sequence" help="Linker seq as plain text ('def' for default sequence)" />
+  </inputs>
+
+  <outputs>
+	<data name="trimmedseq" format="fasta" label="Trimmed Sequences"></data>
+	<data name="tab_summ_file" format="tabular" label ="Summary file"></data>
+  </outputs>
+
+  <help>
+**What it does**
+
+This tool looks for the LTR and linker sequences in the input FASTA
+sequences and removes them. It outputs a new FASTA file containing all
+trimmed sequences longer than the cutoff value (this is currently set
+to 19).
+  </help>
+</tool>

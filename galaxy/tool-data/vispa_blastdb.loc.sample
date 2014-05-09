@@ -1,0 +1,18 @@
+# This is used to define a list of nucleotide BLAST databases, using
+# three tab-separated columns:
+#
+# <unique_id>	<description>	<archive_path>
+#
+# where the archive (zip, tar or gzipped tar) contains BLAST db files
+# AT THE TOP LEVEL, e.g.:
+#
+# tar -t < /path/to/phiX.tar
+# phiX.nhr
+# phiX.nin
+# phiX.nnd
+# phiX.nni
+# phiX.nsd
+# phiX.nsi
+# phiX.nsq
+
+phiX	Phage phiX174	/path/to/phiX.tar

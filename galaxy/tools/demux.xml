@@ -1,0 +1,45 @@
+<!--
+BEGIN_COPYRIGHT
+
+Copyright (C) 2013-2014 CRS4.
+
+This file is part of vispa.
+
+vispa is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+vispa.  If not, see <http://www.gnu.org/licenses/>.
+
+END_COPYRIGHT
+-->
+
+<tool id="demux" name="Demultiplex FASTA" version="0.9.0">
+  <description></description>
+  <command interpreter="python">
+    demux.py $input $barcodes --outdir "$output.files_path" > $output
+  </command>
+  <inputs>
+    <param format="fasta" name="input" type="data" label="FASTA input" />
+    <param format="txt" name="barcodes" type="data" label="Barcodes" />    
+  </inputs>
+  <outputs>
+    <data format="html" name="output" />
+  </outputs>
+  <help>
+
+**What it does**
+
+This tool splits a FASTA file into several files according to the
+given barcodes.  A new FASTA file will be created for each barcode in
+the barcodes file, and it will contain all sequences that match that
+barcode **exactly**.
+
+  </help>
+</tool>

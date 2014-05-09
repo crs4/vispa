@@ -1,0 +1,55 @@
+<!--
+BEGIN_COPYRIGHT
+
+Copyright (C) 2013-2014 CRS4.
+
+This file is part of vispa.
+
+vispa is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+vispa is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+vispa.  If not, see <http://www.gnu.org/licenses/>.
+
+END_COPYRIGHT
+-->
+
+<tool id="merge_redundant" name="Merge Redundant ISs" version="0.9.0">
+
+<description></description>
+
+<command interpreter="python">
+  merge_redundant.py $input_file $output_file -w $window_size
+</command>
+
+<inputs>
+  <param name="input_file" type="data" format="tabular"
+	 label="BLAST results file" />
+  <param name="window_size" type="integer" value="3" label="Window size" />
+</inputs>
+
+<outputs>
+  <data name="output_file" format="tabular" label="Merged ISs"/>
+</outputs>
+
+  <help>
+**What it does**
+
+This tool takes as input a file containing tabular (no header) BLAST
+output and merges hits corresponding to the same integration site (IS)
+as defined by the given window size. The output is a tabular file,
+again with no header, with three columns:
+
+1. chromosome tag
+
+2. position of the IS within the chromosome
+
+3. multiplicity (how many alignments are found in the corresponding window)
+  </help>
+</tool>
