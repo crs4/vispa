@@ -20,9 +20,9 @@ vispa.  If not, see <http://www.gnu.org/licenses/>.
 END_COPYRIGHT
 -->
 
-<tool id="preBlastOperations" name="Trim LTR/LC" version="0.9.0">
+<tool id="trim" name="Trim LTR/LC" version="0.9.0">
   <description></description>
-  <command interpreter="python">preBlastOperations.py -i $input_file -ltr $ltr -lk $linker -tr $trimmedseq -usedb basic
+  <command interpreter="python">trim.py -i $input_file -ltr $ltr -lk $linker -tr $trimmedseq -usedb basic
 </command>
 
   <inputs>

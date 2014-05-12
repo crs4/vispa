@@ -38,7 +38,7 @@ DEFAULTS = {
 MANIFEST = [  # order matters
   "extract_sff.xml",
   "demux.xml",
-  "preBlastOperations.xml",
+  "trim.xml",
   "mr_blast.xml",
   "merge_redundant.xml",
   "annotate.xml",
