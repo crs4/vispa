@@ -22,11 +22,11 @@
 """
 Common utilities for MapReduce apps.
 """
-import os, optparse, subprocess as sp
+import sys, os, optparse, subprocess as sp
 
 import pydoop
 import pydoop.hadut as hadut
-from bl.core.utils import LOG_LEVELS
+from bl.core.utils import LOG_LEVELS, get_logger
 
 
 class HelpFormatter(optparse.IndentedHelpFormatter):
@@ -101,3 +101,29 @@ def make_parser():
     parser.add_option("--mr-dump-file", metavar="FILE",
                       help="MapReduce out/err dump file [stderr]")
     return parser
+
+
+def parse_cl(parser, argv):
+    opt, args = parser.parse_args(argv[1:])
+    try:
+        input_ = args[0]
+        output = args[1]
+    except IndexError:
+        parser.print_help()
+        raise
+    logger = get_logger("main", level=opt.log_level, filename=opt.log_file)
+    logger.debug("cli args: %r" % (args,))
+    logger.debug("cli opts: %s" % opt)
+    if opt.mr_dump_file:
+        opt.mr_dump_file = open(opt.mr_dump_file, "w")
+    else:
+        opt.mr_dump_file = sys.stderr
+    return input_, output, opt, logger
+
+
+def config_pydoop(opt):
+    if opt.hadoop_home:
+        os.environ["HADOOP_HOME"] = opt.hadoop_home
+    if opt.hadoop_conf_dir:
+        os.environ["HADOOP_CONF_DIR"] = opt.hadoop_conf_dir
+    pydoop.reset()

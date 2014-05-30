@@ -34,11 +34,8 @@ s1	ACACGTGT
 s2	CACA
 """
 
-import sys, os
-
-import pydoop
-from bl.core.utils import get_logger
-from mr_common import build_launcher, PipesRunner, make_parser
+import sys
+import mr_common as mrc
 
 
 BASE_MR_OPT = {
@@ -51,35 +48,16 @@ PREFIX = "fasta2tab_"
 
 
 def main(argv):
-
-    parser = make_parser()
-    opt, args = parser.parse_args(argv[1:])
+    parser = mrc.make_parser()
     try:
-        input_ = args[0]
-        output = args[1]
+        input_, output, opt, logger = mrc.parse_cl(parser, argv)
     except IndexError:
-        parser.print_help()
         sys.exit(2)
-
-    logger = get_logger("main", level=opt.log_level, filename=opt.log_file)
-    logger.debug("cli args: %r" % (args,))
-    logger.debug("cli opts: %s" % opt)
-
-    if opt.mr_dump_file:
-        opt.mr_dump_file = open(opt.mr_dump_file, "w")
-    else:
-        opt.mr_dump_file = sys.stderr
-
-    if opt.hadoop_home:
-        os.environ["HADOOP_HOME"] = opt.hadoop_home
-    if opt.hadoop_conf_dir:
-        os.environ["HADOOP_CONF_DIR"] = opt.hadoop_conf_dir
-    pydoop.reset()
-
-    runner = PipesRunner(logger=logger)
+    mrc.config_pydoop(opt)
+    runner = mrc.PipesRunner(logger=logger)
     runner.set_input(input_, put=False)
     runner.set_output(output)
-    runner.set_exe(build_launcher("bl.core.seq.mr.fasta2tab"))
+    runner.set_exe(mrc.build_launcher("bl.core.seq.mr.fasta2tab"))
     mr_opt = BASE_MR_OPT.copy()
     mr_opt.update({
         "mapred.map.tasks": str(opt.mappers),
@@ -87,7 +65,6 @@ def main(argv):
         })
     runner.run(properties=mr_opt, mr_dump_file=opt.mr_dump_file)
     logger.info("all done")
-
     if opt.mr_dump_file is not sys.stderr:
         opt.mr_dump_file.close()
 
