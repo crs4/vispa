@@ -37,9 +37,8 @@ s2	CACA
 import sys, os
 
 import pydoop
-import pydoop.hadut as hadut
 from bl.core.utils import get_logger
-from mr_common import build_launcher, make_parser
+from mr_common import build_launcher, PipesRunner, make_parser
 
 
 BASE_MR_OPT = {
@@ -77,16 +76,16 @@ def main(argv):
         os.environ["HADOOP_CONF_DIR"] = opt.hadoop_conf_dir
     pydoop.reset()
 
-    runner = hadut.PipesRunner(prefix=PREFIX, logger=logger)
-    runner.set_exe(build_launcher("bl.core.seq.mr.fasta2tab"))
+    runner = PipesRunner(logger=logger)
     runner.set_input(input_, put=False)
     runner.set_output(output)
+    runner.set_exe(build_launcher("bl.core.seq.mr.fasta2tab"))
     mr_opt = BASE_MR_OPT.copy()
     mr_opt.update({
         "mapred.map.tasks": str(opt.mappers),
         "bl.mr.log.level": opt.log_level,
         })
-    runner.run(properties=mr_opt, logger=logger)
+    runner.run(properties=mr_opt, mr_dump_file=opt.mr_dump_file)
     logger.info("all done")
 
     if opt.mr_dump_file is not sys.stderr:

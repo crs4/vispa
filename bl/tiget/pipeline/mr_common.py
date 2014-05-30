@@ -22,7 +22,10 @@
 """
 Common utilities for MapReduce apps.
 """
-import os, optparse
+import os, optparse, subprocess as sp
+
+import pydoop
+import pydoop.hadut as hadut
 from bl.core.utils import LOG_LEVELS
 
 
@@ -45,6 +48,30 @@ def build_launcher(app_module):
         'run_task()\n',
         ])
     return ''.join(lines)
+
+
+class PipesRunner(hadut.PipesRunner):
+    """
+    Modified version of Pydoop's PipesRunner that allows redirection
+    of Hadoop stderr/stdout.
+    """
+    def __build_cmd(self, properties):
+        hadoop = pydoop.hadoop_exec()
+        conf_d = pydoop.hadoop_conf()
+        d_opts = " ".join("-D %s=%s" % _ for _ in properties.iteritems())
+        return "%s --config %s pipes %s -program %s -input %s -output %s" % (
+            hadoop, conf_d, d_opts, self.exe, self.input, self.output
+            )
+
+    def run(self, properties=None, mr_dump_file=None):
+        if not (self.input and self.output and self.exe):
+            raise RuntimeError("setup incomplete, can't run")
+        cmd = self.__build_cmd(properties)
+        self.logger.debug("cmd: %s" % cmd)
+        p = sp.Popen(
+            cmd, shell=True, stdout=mr_dump_file, stderr=mr_dump_file
+            )
+        return os.waitpid(p.pid, 0)[1]
 
 
 def add_hadoop_optgroup(parser):
