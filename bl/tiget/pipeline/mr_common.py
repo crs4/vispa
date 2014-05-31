@@ -22,16 +22,29 @@
 """
 Common utilities for MapReduce apps.
 """
-import sys, os, optparse, subprocess as sp
+import sys, os, optparse, hashlib, subprocess as sp
 
 import pydoop
 import pydoop.hadut as hadut
 from bl.core.utils import LOG_LEVELS, get_logger
 
 
+BUFSIZE = 1024 * os.sysconf("SC_PAGE_SIZE")
+
+
 class HelpFormatter(optparse.IndentedHelpFormatter):
     def format_description(self, description):
         return description + "\n" if description else ""
+
+
+def checksum(f):
+    md5 = hashlib.md5()
+    while 1:
+        s = f.read(BUFSIZE)
+        if not s:
+            break
+        md5.update(s)
+    return md5.hexdigest()
 
 
 def build_launcher(app_module):

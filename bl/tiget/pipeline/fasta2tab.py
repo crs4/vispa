@@ -44,7 +44,6 @@ BASE_MR_OPT = {
     "hadoop.pipes.java.recordwriter": "true",
     "mapred.reduce.tasks": "0",
     }
-PREFIX = "fasta2tab_"
 
 
 def main(argv):
